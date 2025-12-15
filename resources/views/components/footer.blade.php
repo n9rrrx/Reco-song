@@ -15,7 +15,6 @@
             <span>&copy; {{ date('Y') }} Listen app. All rights reserved.</span>
             <ul class="social">
                 <li><a href="#" aria-label="Facebook"><i class="ri-facebook-circle-line fs-6"></i></a></li>
-                <li><a href="#" aria-label="X"><i class="ri-twitter-x-line fs-6"></i></a></li>
                 <li><a href="#" aria-label="Instagram"><i class="ri-instagram-line fs-6"></i></a></li>
                 <li><a href="#" aria-label="Pinterest"><i class="ri-pinterest-line fs-6"></i></a></li>
                 <li><a href="#" aria-label="Youtube"><i class="ri-youtube-line fs-6"></i></a></li>
