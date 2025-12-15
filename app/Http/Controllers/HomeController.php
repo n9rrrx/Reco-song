@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
@@ -14,38 +15,77 @@ class HomeController extends Controller
 
     public function recognize(Request $request)
     {
-        // 1. Validate that an audio file was actually sent
+        // 1. Validate Audio
         $request->validate([
-            'audio' => 'required|file|mimes:webm,wav,mp4,mp3|max:10240', // Max 10MB
+            'audio' => 'required|file|max:10240', // 10MB limit
         ]);
 
         try {
-            // 2. Store the file temporarily to check if upload works
-            if ($request->hasFile('audio')) {
-                $file = $request->file('audio');
-                $path = $file->store('recordings', 'public');
+            // 2. Get the uploaded file content
+            $file = $request->file('audio');
+            $fileContent = file_get_contents($file->getRealPath());
 
-                Log::info("Audio uploaded successfully: " . $path);
+            // 3. Prepare ACRCloud Config
+            $host = env('ACR_HOST');
+            $accessKey = env('ACR_ACCESS_KEY');
+            $accessSecret = env('ACR_ACCESS_SECRET');
 
-                // 3. MOCK RESPONSE (Simulating a successful API hit)
-                // We will replace this with the real AudD/ACRCloud API call next.
+            // 4. Generate Signature (Crucial Security Step)
+            $httpMethod = "POST";
+            $httpUri = "/v1/identify";
+            $dataType = "audio";
+            $signatureVersion = "1";
+            $timestamp = time();
+
+            $stringToSign = $httpMethod . "\n" .
+                $httpUri . "\n" .
+                $accessKey . "\n" .
+                $dataType . "\n" .
+                $signatureVersion . "\n" .
+                $timestamp;
+
+            $signature = base64_encode(hash_hmac("sha1", $stringToSign, $accessSecret, true));
+
+            // 5. Send Request to ACRCloud
+            // We use Laravel's HTTP Client to post the file and keys
+            $response = Http::withoutVerifying()
+                ->asMultipart()
+                ->post("https://" . $host . $httpUri, [
+                    'access_key' => $accessKey,
+                    'data_type' => $dataType,
+                    'signature_version' => $signatureVersion,
+                    'signature' => $signature,
+                    'timestamp' => $timestamp,
+                    'sample' => $fileContent,
+                ]);
+
+            $result = $response->json();
+
+            // 6. Handle Response
+            if (isset($result['status']['code']) && $result['status']['code'] == 0) {
+
+                // Success! Extract the best match
+                $music = $result['metadata']['music'][0];
+
                 return response()->json([
                     'status' => 'success',
                     'data' => [
-                        'title'  => 'Adventure of a Lifetime (TEST)',
-                        'artist' => 'Coldplay',
-                        'album'  => 'A Head Full of Dreams',
+                        'title'  => $music['title'],
+                        'artist' => $music['artists'][0]['name'],
+                        'album'  => $music['album']['name'] ?? 'Single',
+                        // ACRCloud doesn't always send art, so we use a safe fallback or their external metadata
                         'album_art' => '/assets/images/misc/plan.png',
-                        'link_spotify' => 'https://open.spotify.com/track/69uxyAqqPIsUyTO8txoP2M'
+                        'link_spotify' => $music['external_metadata']['spotify']['track']['id'] ?? '#'
                     ]
                 ]);
+            } else {
+                Log::error("ACRCloud Error: " . json_encode($result));
+                return response()->json(['status' => 'error', 'message' => 'Song not recognized.'], 404);
             }
 
-            return response()->json(['status' => 'error', 'message' => 'No file uploaded'], 400);
-
         } catch (\Exception $e) {
-            Log::error("Recognition Error: " . $e->getMessage());
-            return response()->json(['status' => 'error', 'message' => 'Server Error'], 500);
+            Log::error("Server Error: " . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Internal Server Error'], 500);
         }
     }
 }
