@@ -1,0 +1,6 @@
+/* Tailwind CSS v4 Import */
+@import "tailwindcss";
+
+/* --- Template Styles --- */
+@import './plugins.bundle.css';
+@import './styles.bundle.css';
