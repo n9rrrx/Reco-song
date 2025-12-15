@@ -4,3 +4,7 @@
 /* --- Template Styles --- */
 @import './plugins.bundle.css';
 @import './styles.bundle.css';
+/* FORCE HIDE LOADER */
+#loader, .loader, .preloader {
+    display: none !important;
+}

@@ -2,7 +2,7 @@
     <div class="container">
         <nav class="navbar navbar-expand-lg">
             <a href="{{ url('/') }}" class="brand external">
-                <img src="{{ asset('images/logos/logo.svg') }}" alt="Listen app">
+                <img src="{{ asset('assets/images/logos/logo.svg') }}" alt="Logo">
             </a>
             <div class="d-flex align-items-center navbar-ex">
                 <a class="btn btn-primary external" href="{{ route('register') }}">Try it free</a>

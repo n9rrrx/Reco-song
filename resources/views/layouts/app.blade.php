@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="Listen App - Online Music Streaming App Template">
     <meta name="keywords" content="music template, music app, music web app, responsive music app, music, themeforest, html music app template, css3, html5">
 
@@ -24,14 +25,7 @@
 </head>
 <body>
 
-<div id="loader">
-    <div class="loader">
-        <div class="loader__eq mx-auto">
-            <span></span><span></span><span></span><span></span><span></span><span></span>
-        </div>
-        <span class="loader__text mt-2">Loading</span>
-    </div>
-</div>
+
 
 <div id="wrapper">
 
@@ -44,6 +38,7 @@
     @include('components.footer')
 
 </div>
+<script src="{{ asset('js/scripts.bundle.js') }}"></script>
 
 </body>
 </html>

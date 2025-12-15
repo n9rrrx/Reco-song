@@ -13,6 +13,7 @@ use App\Http\Controllers\HomeController;
 
 // Home Page
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::post('/recognize', [HomeController::class, 'recognize'])->name('recognize');
 
 // Recognition API Endpoint
 Route::post('/recognize', [HomeController::class, 'recognize'])->name('recognize');
