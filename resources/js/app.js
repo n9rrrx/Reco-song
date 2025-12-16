@@ -1,7 +1,8 @@
 import './bootstrap';
 
-// 👇 KEEP THIS COMMENTED OUT FOR NOW
-// We want to make sure the recorder works without template interference first.
+// 👇 UNCOMMENT THIS LINE if you haven't already moved it to the HTML footer
+// (If you followed the "Move to Public" step, keep it commented/deleted)
+// import './scripts.bundle.js';
 
 import AudioRecorder from './recorder';
 
@@ -13,14 +14,19 @@ console.log("🚀 App.js Loaded - Recorder Ready");
 // 2. Define the Global Function (Triggered by onclick)
 window.startRecording = async function() {
     const btn = document.getElementById('live-listen-btn');
-    const originalText = btn.innerHTML;
+
+    // Save original content (icon + text) so we can restore it later
+    const originalContent = btn.innerHTML;
 
     console.log("🖱️ Button Clicked via onclick!");
 
-    // UI Update
-    btn.innerHTML = 'Listening...';
-    btn.classList.remove('btn-danger');
-    btn.classList.add('btn-warning');
+    // --- UI STATE: LISTENING ---
+    // Change text to spinner and add the red pulse animation
+    btn.innerHTML = '<i class="ri-loader-4-line spin align-middle fs-2"></i> <span>Listening...</span>';
+    btn.classList.add('listening');
+
+    // (Optional) Disable button so user doesn't click twice
+    btn.style.pointerEvents = 'none';
 
     try {
         // Start Mic
@@ -29,7 +35,9 @@ window.startRecording = async function() {
 
         // Stop after 5 seconds
         setTimeout(async () => {
-            btn.innerHTML = 'Identifying...';
+
+            // --- UI STATE: ANALYZING ---
+            btn.innerHTML = '<i class="ri-magic-line align-middle fs-2"></i> <span>Analyzing...</span>';
 
             const audioBlob = await window.recorder.stop();
             console.log("⏹️ Recording Stopped. Size:", audioBlob.size);
@@ -37,16 +45,21 @@ window.startRecording = async function() {
             // Upload
             await sendAudioToServer(audioBlob);
 
-            // Reset UI
-            btn.innerHTML = originalText;
-            btn.classList.remove('btn-warning');
-            btn.classList.add('btn-danger');
+            // --- UI STATE: RESET ---
+            btn.innerHTML = originalContent;
+            btn.classList.remove('listening');
+            btn.style.pointerEvents = 'auto'; // Re-enable clicking
+
         }, 5000);
 
     } catch (err) {
         alert("Microphone Error: " + err);
         console.error(err);
-        btn.innerHTML = originalText;
+
+        // Reset on error
+        btn.innerHTML = originalContent;
+        btn.classList.remove('listening');
+        btn.style.pointerEvents = 'auto';
     }
 };
 
@@ -72,7 +85,7 @@ async function sendAudioToServer(audioBlob) {
     }
 }
 
-// 4. Show Result Function
+// 4. Show Result Function (Updated for Glass Card)
 function showResult(data) {
     const card = document.getElementById('recognition-result-card');
     const title = document.getElementById('result-title');
@@ -88,13 +101,16 @@ function showResult(data) {
     }
 
     if (card) {
+        // Show the card with animation
         card.style.display = 'block';
-        card.scrollIntoView({ behavior: 'smooth' });
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }
 
 // 5. Global Reset Function
 window.resetRecognition = function() {
     const card = document.getElementById('recognition-result-card');
-    if (card) card.style.display = 'none';
+    if (card) {
+        card.style.display = 'none';
+    }
 }

@@ -8,9 +8,9 @@
     <meta name="description" content="Listen App - Online Music Streaming App Template">
     <meta name="keywords" content="music template, music app, music web app, responsive music app, music, themeforest, html music app template, css3, html5">
 
-    <title>@yield('title', 'Listen App - Online Music Streaming App')</title>
+    <title>@yield('title', 'Reco-song - Instant Music Recognition ')</title>
 
-    <link href="{{ asset('images/logos/favicon.png') }}" rel="icon">
+    <link href="{{ asset('assets/images/logos/favicon.ico') }}" rel="icon">
     <link rel="apple-touch-icon" href="{{ asset('images/logos/touch-icon-iphone.png') }}">
     <link rel="apple-touch-icon" sizes="152x152" href="{{ asset('images/logos/touch-icon-ipad.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/logos/touch-icon-iphone-retina.png') }}">
