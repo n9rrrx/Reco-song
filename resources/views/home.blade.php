@@ -1,157 +1,177 @@
 @extends('layouts.app')
 
-@section('title', 'Reco-song - Instant Song Recognition')
+@section('title', 'Reco-song | Instant Music Recognition')
 
 @section('content')
 
-    {{-- 1. HERO SECTION: LIVE LISTENER & LINK DROPPER --}}
-    <div class="container-fluid px-xl-4">
-        <div class="main-hero mx-auto">
-            <div class="container">
-                <div class="col-xl-8 col-lg-10 col-md-12 fs-5 text-center">
-                    <h1 class="main-hero__title mb-3">
-                        <span class="text-primary">Reco-song</span>
-                        <br>Tap to Identify the Song.
-                    </h1>
+    {{-- 1. HERO SECTION (Centered, Full Height) --}}
+    <div class="d-flex align-items-center justify-content-center min-vh-100 position-relative" style="margin-top: -80px; padding-top: 80px;">
 
-                    <div class="me-sm-5">
-                        <p class="mb-4">Use your microphone or paste a link below for instant, dual-API recognition.</p>
+        <div class="container text-center" style="z-index: 2;">
 
-                        {{-- MICROPHONE BUTTON --}}
-                        <button id="live-listen-btn"
-                                class="btn btn-lg btn-danger px-5 py-3 shadow-lg"
-                                onclick="startRecording()"
-                                style="z-index: 9999; position: relative;">
-                            <i class="ri-mic-line me-2 fs-4 align-middle"></i>
-                            <span class="fw-bold">Start Listening</span>
-                        </button>
+            {{-- Floating Badge --}}
+            <div class="mb-4">
+                <span class="badge glass-card px-4 py-2 text-uppercase tracking-widest text-white border-0 shadow-sm"
+                      style="letter-spacing: 3px; font-size: 0.75rem; background: rgba(255,255,255,0.1);">
+                    ✨ Reco-song ✨
+                </span>
+            </div>
 
-                        {{-- LINK DROPPER --}}
-                        <div class="input-group mt-5 mx-auto shadow-sm" style="max-width: 600px;">
-                            <input type="url" id="link-drop-input" class="form-control form-control-lg border-0" placeholder="Paste YouTube, Spotify, or SoundCloud link...">
-                            <button id="process-link-btn" class="btn btn-primary px-4 fw-semibold" type="button">
-                                Identify
+            {{-- Big Gradient Title --}}
+            <h1 class="display-3 fw-bold mb-4 text-white">
+                What song is <br>
+                <span style="background: linear-gradient(to right, #6366f1, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    playing right now?
+                </span>
+            </h1>
+
+            <p class="lead text-light opacity-75 mb-5 mx-auto" style="max-width: 600px;">
+                Identify music playing around you instantly. High-speed recognition powered by ACRCloud's dual-engine technology.
+            </p>
+
+            {{-- Action Area --}}
+            <div class="d-flex justify-content-center gap-3 flex-column flex-sm-row align-items-center">
+
+                {{-- THE LAVISH MIC BUTTON --}}
+                <button id="live-listen-btn"
+                        class="btn btn-lavish px-5 py-4 fs-4 fw-bold d-flex align-items-center justify-content-center gap-3"
+                        onclick="startRecording()"
+                        style="min-width: 280px;">
+                    <i class="ri-mic-line fs-2"></i>
+                    <span>Start Listening</span>
+                </button>
+
+            </div>
+
+            {{-- Link Dropper (Optional: Styled to match) --}}
+            <div class="mt-5 mx-auto" style="max-width: 500px;">
+                <div class="input-group glass-card p-1 rounded-pill">
+                    <input type="url" id="link-drop-input" class="form-control bg-transparent border-0 text-white px-4"
+                           placeholder="Or paste a Spotify/YouTube link..." style="box-shadow: none;">
+                    <button class="btn btn-primary rounded-pill px-4 fw-bold" type="button">Identify</button>
+                </div>
+            </div>
+
+            {{-- 2. RESULT CARD (Floating Glass - Hidden by Default) --}}
+            <div id="recognition-result-card" class="mt-5 mx-auto text-start glass-card p-4"
+                 style="display: none; max-width: 600px; animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);">
+
+                <div class="d-flex align-items-center gap-4 flex-column flex-sm-row text-center text-sm-start">
+                    {{-- Album Art --}}
+                    <img id="result-album-art" src="{{ asset('assets/images/misc/plan.png') }}"
+                         class="rounded-4 shadow-lg"
+                         style="width: 120px; height: 120px; object-fit: cover;"
+                         alt="Art">
+
+                    {{-- Details --}}
+                    <div class="flex-grow-1 w-100">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="text-uppercase text-primary small fw-bold mb-1 ls-2">Match Found</h6>
+                                <h3 id="result-title" class="fw-bold mb-1 text-white">Song Title</h3>
+                                <p id="result-artist" class="fs-5 text-light opacity-75 mb-3">Artist Name</p>
+                            </div>
+                            <button class="btn-close btn-close-white d-none d-sm-block" onclick="resetRecognition()"></button>
+                        </div>
+
+                        {{-- Streaming Buttons --}}
+                        <div class="d-flex gap-2 justify-content-center justify-content-sm-start flex-wrap">
+                            <a href="#" class="btn btn-sm btn-success rounded-pill px-3 fw-bold">
+                                <i class="ri-spotify-fill"></i> Spotify
+                            </a>
+                            <a href="#" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold">
+                                <i class="ri-youtube-fill"></i> YouTube
+                            </a>
+                            <button class="btn btn-sm btn-outline-light rounded-pill px-3 d-sm-none" onclick="resetRecognition()">
+                                Close
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
-    {{-- 2. RECOGNITION RESULT DISPLAY (Initially Hidden) --}}
-    {{-- We use Javascript to show this block when a song is found --}}
-    <div id="recognition-result-card" class="container-fluid px-xl-4 my-5" style="display: none;">
-        <div class="container">
-            <div class="card p-4 mx-auto shadow-lg border-0" style="max-width: 800px; border-radius: 16px;">
-                <div class="d-flex align-items-center flex-column flex-md-row text-center text-md-start">
+    {{-- 3. FEATURES (Glass Cards) --}}
+    <div class="container py-5 mb-5">
+        <div class="row g-4 justify-content-center">
 
-                    {{-- Album Art --}}
-                    <img id="result-album-art" src="{{ asset('assets/images/misc/plan.png') }}"
-                         class="me-md-4 mb-3 mb-md-0 shadow-sm"
-                         style="width: 120px; height: 120px; border-radius: 12px; object-fit: cover;"
-                         alt="Album Art">
-
-                    {{-- Song Details --}}
-                    <div class="flex-grow-1 w-100">
-                        <h3 id="result-title" class="mb-1 fw-bold text-dark">Song Title</h3>
-                        <p id="result-artist" class="mb-3 fs-5 text-muted">Artist Name</p>
-
-                        <div id="streaming-links" class="d-flex gap-2 justify-content-center justify-content-md-start flex-wrap">
-                            <a href="#" target="_blank" class="btn btn-success rounded-pill">
-                                <i class="ri-spotify-fill"></i> Spotify
-                            </a>
-                            <a href="#" target="_blank" class="btn btn-danger rounded-pill">
-                                <i class="ri-youtube-fill"></i> YouTube
-                            </a>
-                            <a href="#" target="_blank" class="btn btn-dark rounded-pill">
-                                <i class="ri-apple-fill"></i> Apple Music
-                            </a>
-                        </div>
+            {{-- Feature 1 --}}
+            <div class="col-md-6 col-lg-3">
+                <div class="glass-card p-4 h-100 text-center feature-card hover-lift">
+                    <div class="feature-icon-box text-white">
+                        <i class="ri-sound-module-fill"></i>
                     </div>
-
-                    {{-- Close/Reset Button --}}
-                    <button type="button" class="btn-close ms-md-3 align-self-start" aria-label="Close" onclick="resetRecognition()"></button>
+                    <h5 class="fw-bold text-white">Dual Engine</h5>
+                    <p class="text-white-50 small mb-0">Powered by industry-standard audio fingerprinting technology.</p>
                 </div>
             </div>
-        </div>
-    </div>
 
-    {{-- 3. FEATURES SECTION --}}
-    <div class="main-section bg-light">
-        <div class="container">
-            <div class="col-xl-6 col-lg-8 mx-auto text-center fs-5 mb-5">
-                <h2>Why We Are <span class="text-primary">Better</span></h2>
-                <p class="text-muted">Fast, accurate, and free song identification powered by dual engines.</p>
-            </div>
-
-            <div class="feature">
-                <div class="row g-4 g-md-5">
-                    {{-- Feature 1 --}}
-                    <div class="col-xl-3 col-lg-4 col-sm-6">
-                        <div class="card h-100 py-2 border-0 shadow-sm">
-                            <div class="card-body text-center">
-                                <div class="feature__icon mb-3 text-primary bg-primary-subtle rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                                    <i class="ri-exchange-2-fill fs-2"></i>
-                                </div>
-                                <div class="h5">Dual-API Accuracy</div>
-                                <p class="text-muted">We combine AudD & ACRCloud for the highest confidence matching possible.</p>
-                            </div>
-                        </div>
+            {{-- Feature 2 --}}
+            <div class="col-md-6 col-lg-3">
+                <div class="glass-card p-4 h-100 text-center feature-card hover-lift">
+                    <div class="feature-icon-box text-white">
+                        <i class="ri-flashlight-fill"></i>
                     </div>
-
-                    {{-- Feature 2 --}}
-                    <div class="col-xl-3 col-lg-4 col-sm-6">
-                        <div class="card h-100 py-2 border-0 shadow-sm">
-                            <div class="card-body text-center">
-                                <div class="feature__icon mb-3 text-danger bg-danger-subtle rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                                    <i class="ri-links-line fs-2"></i>
-                                </div>
-                                <div class="h5">Instant Links</div>
-                                <p class="text-muted">Get direct links to Spotify, YouTube, and Apple Music immediately.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Feature 3 --}}
-                    <div class="col-xl-3 col-lg-4 col-sm-6">
-                        <div class="card h-100 py-2 border-0 shadow-sm">
-                            <div class="card-body text-center">
-                                <div class="feature__icon mb-3 text-success bg-success-subtle rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                                    <i class="ri-global-line fs-2"></i>
-                                </div>
-                                <div class="h5">Global Search</div>
-                                <p class="text-muted">Recognize songs from any country, in any language, instantly.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Feature 4 --}}
-                    <div class="col-xl-3 col-lg-4 col-sm-6">
-                        <div class="card h-100 py-2 border-0 shadow-sm">
-                            <div class="card-body text-center">
-                                <div class="feature__icon mb-3 text-warning bg-warning-subtle rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                                    <i class="ri-history-line fs-2"></i>
-                                </div>
-                                <div class="h5">Search History</div>
-                                <p class="text-muted">Keep track of every song you've discovered in your personal library.</p>
-                            </div>
-                        </div>
-                    </div>
+                    <h5 class="fw-bold text-white">Lightning Fast</h5>
+                    <p class="text-white-50 small mb-0">Identifies songs in under 5 seconds, even in noisy environments.</p>
                 </div>
             </div>
+
+            {{-- Feature 3 --}}
+            <div class="col-md-6 col-lg-3">
+                <div class="glass-card p-4 h-100 text-center feature-card hover-lift">
+                    <div class="feature-icon-box text-white">
+                        <i class="ri-global-line"></i>
+                    </div>
+                    <h5 class="fw-bold text-white">Global Database</h5>
+                    <p class="text-white-50 small mb-0">Recognize over 100 million songs from any country.</p>
+                </div>
+            </div>
+
+            {{-- Feature 4 --}}
+            <div class="col-md-6 col-lg-3">
+                <div class="glass-card p-4 h-100 text-center feature-card hover-lift">
+                    <div class="feature-icon-box text-white">
+                        <i class="ri-history-line"></i>
+                    </div>
+                    <h5 class="fw-bold text-white">Search History</h5>
+                    <p class="text-white-50 small mb-0">Never lose a song. We save every discovery for you.</p>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    {{-- 4. CALL TO ACTION --}}
-    <div class="container my-5">
-        <div class="newsletter text-white rounded-3 p-5" style="background: var(--bs-primary);">
-            <div class="col-xl-7 col-lg-10 fs-5 mx-auto text-center">
-                <h2 class="text-white fw-bold">Never miss a beat.</h2>
-                <p class="mb-4">Join Reco-song today to save your discoveries and create playlists.</p>
-                <a href="{{ route('register') }}" class="btn btn-lg btn-light text-primary fw-bold px-5">Get Started Free</a>
-            </div>
+    {{-- 4. CTA SECTION --}}
+    <div class="container pb-5">
+        <div class="glass-card p-5 text-center position-relative overflow-hidden">
+            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(45deg, rgba(99, 102, 241, 0.2), rgba(236, 72, 153, 0.2)); z-index: -1;"></div>
+
+            <h2 class="text-white fw-bold mb-3">Ready to build your library?</h2>
+            <p class="text-white-50 mb-4">Join Reco-song today to save your discoveries and create playlists.</p>
+            <a href="{{ route('register') }}" class="btn btn-light text-primary fw-bold px-5 py-3 rounded-pill shadow-lg hover-scale">
+                Get Started Free
+            </a>
         </div>
     </div>
+
+    {{-- Custom Animation Styles --}}
+    <style>
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .hover-lift { transition: transform 0.3s ease; }
+        .hover-lift:hover { transform: translateY(-10px); }
+
+        .hover-scale { transition: transform 0.2s; }
+        .hover-scale:hover { transform: scale(1.05); }
+
+        /* Fix placeholder color in glass input */
+        ::placeholder { color: rgba(255,255,255,0.5) !important; opacity: 1; }
+    </style>
 
 @endsection
