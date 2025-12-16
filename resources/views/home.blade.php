@@ -5,7 +5,8 @@
 @section('content')
 
     {{-- 1. HERO SECTION (Centered, Full Height) --}}
-    <div class="d-flex align-items-center justify-content-center min-vh-100 position-relative" style="margin-top: -80px; padding-top: 80px;">
+    <div class="d-flex align-items-center justify-content-center min-vh-100 position-relative flex-column"
+         style="min-width: 280px; max-width: 100%;">
 
         <div class="container text-center" style="z-index: 2;">
 
