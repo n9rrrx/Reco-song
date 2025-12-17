@@ -86,31 +86,42 @@ async function sendAudioToServer(audioBlob) {
 }
 
 // 4. Show Result Function (Updated for Glass Card)
+// 4. Show Result Function (Updated for Links)
 function showResult(data) {
     const card = document.getElementById('recognition-result-card');
     const title = document.getElementById('result-title');
     const artist = document.getElementById('result-artist');
     const art = document.getElementById('result-album-art');
 
+    // 👇 NEW: Get Buttons
+    const btnSpotify = document.getElementById('btn-spotify');
+    const btnYoutube = document.getElementById('btn-youtube');
+
     if (title) title.innerText = data.title;
     if (artist) artist.innerText = data.artist;
 
-    // Fix image path
     if (art) {
         art.src = data.album_art || "/assets/images/misc/plan.png";
     }
 
+    // 👇 NEW: Handle Spotify Button
+    if (data.spotify_link && btnSpotify) {
+        btnSpotify.href = data.spotify_link;
+        btnSpotify.style.display = 'inline-block'; // Show it
+    } else if (btnSpotify) {
+        btnSpotify.style.display = 'none'; // Hide if no link
+    }
+
+    // 👇 NEW: Handle YouTube Button
+    if (data.youtube_link && btnYoutube) {
+        btnYoutube.href = data.youtube_link;
+        btnYoutube.style.display = 'inline-block'; // Show it
+    } else if (btnYoutube) {
+        btnYoutube.style.display = 'none'; // Hide if no link
+    }
+
     if (card) {
-        // Show the card with animation
         card.style.display = 'block';
         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-}
-
-// 5. Global Reset Function
-window.resetRecognition = function() {
-    const card = document.getElementById('recognition-result-card');
-    if (card) {
-        card.style.display = 'none';
     }
 }

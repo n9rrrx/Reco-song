@@ -77,12 +77,17 @@
 
                         {{-- Streaming Buttons --}}
                         <div class="d-flex gap-2 justify-content-center justify-content-sm-start flex-wrap">
-                            <a href="#" class="btn btn-sm btn-success rounded-pill px-3 fw-bold">
+
+                            {{-- 👇 Added id="btn-spotify" --}}
+                            <a id="btn-spotify" href="#" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 fw-bold" style="display: none;">
                                 <i class="ri-spotify-fill"></i> Spotify
                             </a>
-                            <a href="#" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold">
+
+                            {{-- 👇 Added id="btn-youtube" --}}
+                            <a id="btn-youtube" href="#" target="_blank" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold" style="display: none;">
                                 <i class="ri-youtube-fill"></i> YouTube
                             </a>
+
                             <button class="btn btn-sm btn-outline-light rounded-pill px-3 d-sm-none" onclick="resetRecognition()">
                                 Close
                             </button>
