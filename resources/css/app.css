@@ -156,3 +156,52 @@ body::before {
 #loader, .loader, .preloader {
     display: none !important;
 }
+
+/* --- MOBILE RESPONSIVENESS FIXES --- */
+@media (max-width: 991px) {
+
+    /* 1. Shrink the Giant Title */
+    h1.display-3 {
+        font-size: 2.5rem !important; /* Smaller on mobile */
+        line-height: 1.2;
+    }
+
+    /* 2. Adjust Hero Spacing */
+    .min-vh-100 {
+        min-height: auto !important; /* Allow scroll on mobile */
+        padding-top: 140px !important; /* clear fixed header */
+        padding-bottom: 60px;
+    }
+
+    /* 3. Make Buttons Full Width */
+    #live-listen-btn {
+        width: 100% !important;
+        padding: 1.5rem !important;
+        font-size: 1.2rem !important;
+    }
+
+    /* 4. Fix Navbar Mobile Menu */
+    .navbar-collapse {
+        background: rgba(15, 23, 42, 0.95); /* Solid dark background */
+        backdrop-filter: blur(15px);
+        padding: 20px;
+        border-radius: 15px;
+        margin-top: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Center nav links on mobile */
+    .navbar-nav {
+        text-align: center;
+    }
+
+    .navbar-ex {
+        justify-content: center;
+        margin-top: 15px;
+        width: 100%;
+    }
+
+    .navbar-ex .btn {
+        width: 100%; /* Full width "Try Free" button */
+    }
+}

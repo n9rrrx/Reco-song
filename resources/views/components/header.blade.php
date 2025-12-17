@@ -24,7 +24,7 @@
                 <button class="navbar-toggler ms-3 border-0" type="button" data-bs-toggle="collapse"
                         data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
-                    <i class="ri-menu-3-fill fs-2 text-white"></i>
+                    <i class="ri-menu-3-fill fs-1 text-white"></i>
                 </button>
             </div>
 

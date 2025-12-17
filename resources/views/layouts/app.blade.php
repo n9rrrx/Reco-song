@@ -3,29 +3,25 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="description" content="Listen App - Online Music Streaming App Template">
-    <meta name="keywords" content="music template, music app, music web app, responsive music app, music, themeforest, html music app template, css3, html5">
+    <meta name="description" content="Reco-song - Instant Music Recognition">
 
-    <title>@yield('title', 'Reco-song - Instant Music Recognition ')</title>
+    <title>@yield('title', 'Reco-song - Instant Music Recognition')</title>
 
-    <link href="{{ asset('assets/images/logos/favicon.ico') }}" rel="icon">
-    <link rel="apple-touch-icon" href="{{ asset('images/logos/touch-icon-iphone.png') }}">
-    <link rel="apple-touch-icon" sizes="152x152" href="{{ asset('images/logos/touch-icon-ipad.png') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/logos/touch-icon-iphone-retina.png') }}">
-    <link rel="apple-touch-icon" sizes="167x167" href="{{ asset('images/logos/touch-icon-ipad-retina.png') }}">
+    {{-- 1. FAVICON (Updated to use your Logo) --}}
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/images/logos/logo.svg') }}">
+    <link rel="shortcut icon" href="{{ asset('assets/images/logos/logo.svg') }}">
 
+    {{-- 2. VITE ASSETS --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <link rel="preconnect" href="https://fonts.googleapis.com/">
-    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100;200;300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+    {{-- 3. FONTS (Updated to Inter) --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-
-
 
 <div id="wrapper">
 
@@ -38,6 +34,9 @@
     @include('components.footer')
 
 </div>
+
+
+{{-- Legacy Scripts --}}
 <script src="{{ asset('js/scripts.bundle.js') }}"></script>
 
 </body>
