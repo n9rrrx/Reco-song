@@ -17,7 +17,7 @@ class HomeController extends Controller
     {
         $request->validate(['audio' => 'required|file|max:10240']);
 
-        // ... (Keep your Config lines 20-40 exactly the same) ...
+        // --- CONFIG ---
         $host = "identify-ap-southeast-1.acrcloud.com";
         $accessKey = env('ACR_ACCESS_KEY');
         $accessSecret = env('ACR_ACCESS_SECRET');
@@ -26,53 +26,118 @@ class HomeController extends Controller
         $dataType = "audio";
         $signatureVersion = "1";
         $timestamp = time();
+
         $stringToSign = $httpMethod . "\n" . $httpUri . "\n" . $accessKey . "\n" . $dataType . "\n" . $signatureVersion . "\n" . $timestamp;
         $signature = base64_encode(hash_hmac("sha1", $stringToSign, $accessSecret, true));
         $file = $request->file('audio');
         $fileContent = file_get_contents($file->getRealPath());
 
         try {
-            $response = Http::withoutVerifying()
-                ->asMultipart()
-                ->post("https://" . $host . $httpUri, [
-                    'access_key' => $accessKey,
-                    'data_type' => $dataType,
-                    'signature_version' => $signatureVersion,
-                    'signature' => $signature,
-                    'timestamp' => $timestamp,
-                    'sample' => $fileContent,
-                ]);
+            $response = Http::withoutVerifying()->asMultipart()->post("https://" . $host . $httpUri, [
+                'access_key' => $accessKey,
+                'data_type' => $dataType,
+                'signature_version' => $signatureVersion,
+                'signature' => $signature,
+                'timestamp' => $timestamp,
+                'sample' => $fileContent,
+            ]);
 
             $json = $response->json();
 
-            // 👇 DEBUG: This saves the raw data to storage/logs/laravel.log
-            Log::info('ACRCloud Response:', $json);
+            // 👇 DEBUG: This logs exactly what ACRCloud found (or didn't find)
+            // Check storage/logs/laravel.log to see the raw scores!
+            Log::info('ACRCloud Raw Response:', $json);
 
+            // Check for Success (Code 0) OR "Partial Match" (sometimes Code 1001 acts weird)
             if (isset($json['status']['code']) && $json['status']['code'] == 0) {
 
-                $music = $json['metadata']['music'][0];
-                $title = $music['title'];
-                $artist = $music['artists'][0]['name'] ?? "Unknown Artist";
+                $matches = $json['metadata']['music'];
+                $bestMatch = null;
+                $highestWeightedScore = -1;
 
-                // 👇 ROBUST IMAGE FINDER
+                // --- 1. NUCLEAR SELECTION LOGIC ---
+                foreach ($matches as $match) {
+                    $rawScore = $match['score'];
+                    $boost = 0;
+
+                    // Boost Official Tracks slightly (just to break ties)
+                    if (isset($match['external_metadata']['spotify']) || isset($match['external_metadata']['youtube'])) {
+                        $boost += 10;
+                    }
+
+                    $finalScore = $rawScore + $boost;
+
+                    // 🛑 NO THRESHOLD: We accept EVERYTHING.
+                    // Even if score is 10, we compare it.
+                    if ($finalScore > $highestWeightedScore) {
+                        $highestWeightedScore = $finalScore;
+                        $bestMatch = $match;
+                    }
+                }
+
+                // Fallback: If the logic above somehow failed, force the first result.
+                if (!$bestMatch && isset($matches[0])) {
+                    $bestMatch = $matches[0];
+                }
+
+                if (!$bestMatch) {
+                    return response()->json(['status' => 'error', 'message' => 'No music detected.']);
+                }
+
+                // --- 2. DATA EXTRACTION ---
+                $title = $bestMatch['title'];
+                $artist = $bestMatch['artists'][0]['name'] ?? "Unknown Artist";
+
+                // --- 3. LINKS (Standardized) ---
+                $spotifyLink = null;
+                if (!empty($bestMatch['external_metadata']['spotify']['track']['id'])) {
+                    // Use standard Spotify Link format
+                    $spotifyLink = "https://open.spotify.com/track/" . $bestMatch['external_metadata']['spotify']['track']['id'];
+                }
+
+                $youtubeVid = null;
+                if (!empty($bestMatch['external_metadata']['youtube']['vid'])) {
+                    $youtubeVid = $bestMatch['external_metadata']['youtube']['vid'];
+                    $youtubeLink = "https://www.youtube.com/watch?v=" . $youtubeVid;
+                } else {
+                    $searchQuery = urlencode($title . " " . $artist);
+                    $youtubeLink = "https://www.youtube.com/results?search_query={$searchQuery}";
+                }
+
+                // --- 4. IMAGE WATERFALL ---
                 $albumArt = null;
 
-                // 1. Try Spotify (Best Quality)
-                if (!empty($music['external_metadata']['spotify']['album']['images'][0]['url'])) {
-                    $albumArt = $music['external_metadata']['spotify']['album']['images'][0]['url'];
+                // Priority A: Spotify Metadata
+                if (!empty($bestMatch['external_metadata']['spotify']['album']['images'][0]['url'])) {
+                    $albumArt = $bestMatch['external_metadata']['spotify']['album']['images'][0]['url'];
                 }
-                // 2. Try Deezer (High Quality)
-                elseif (!empty($music['external_metadata']['deezer']['album']['cover_xl'])) {
-                    $albumArt = $music['external_metadata']['deezer']['album']['cover_xl'];
+                // Priority B: YouTube Thumbnail
+                elseif ($youtubeVid) {
+                    $albumArt = "https://i.ytimg.com/vi/$youtubeVid/hqdefault.jpg";
                 }
-                // 3. Try YouTube (Reliable Fallback)
-                elseif (!empty($music['external_metadata']['youtube']['vid'])) {
-                    $vid = $music['external_metadata']['youtube']['vid'];
-                    $albumArt = "https://i.ytimg.com/vi/$vid/hqdefault.jpg";
+                // Priority C: Deezer / Generic
+                elseif (!empty($bestMatch['external_metadata']['deezer']['album']['cover_xl'])) {
+                    $albumArt = $bestMatch['external_metadata']['deezer']['album']['cover_xl'];
                 }
-                // 4. Try Standard ACRCloud Cover
-                elseif (!empty($music['album']['cover'])) {
-                    $albumArt = $music['album']['cover'];
+                elseif (!empty($bestMatch['album']['cover'])) {
+                    $albumArt = $bestMatch['album']['cover'];
+                }
+
+                // --- 5. IMAGE FALLBACKS ---
+
+                // Fallback A: Spotify oEmbed
+                if (!$albumArt && $spotifyLink) {
+                    try {
+                        // Use the link we just created
+                        $oembedUrl = "https://open.spotify.com/oembed?url=" . $spotifyLink;
+                        $oembed = Http::get($oembedUrl)->json();
+                        $albumArt = $oembed['thumbnail_url'] ?? null;
+                    } catch (\Exception $e) {}
+                }
+
+                // Fallback B: Ultimate iTunes Search
+                if (!$albumArt) {
+                    $albumArt = $this->getItunesCover($title, $artist);
                 }
 
                 return response()->json([
@@ -81,14 +146,47 @@ class HomeController extends Controller
                         'title' => $title,
                         'artist' => $artist,
                         'album_art' => $albumArt,
+                        'spotify_link' => $spotifyLink,
+                        'youtube_link' => $youtubeLink,
+                        'debug_score' => $bestMatch['score'] // Check console to see how low the score was!
                     ]
                 ]);
             }
 
-            return response()->json(['status' => 'error', 'message' => 'Song not found']);
+            // If we are here, ACRCloud sent Status 1001 (Empty List)
+            // This means even THEY couldn't find it.
+            return response()->json(['status' => 'error', 'message' => 'No match found in database.']);
 
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
+    }
+
+    private function cleanTitle($title)
+    {
+        $title = preg_replace('/\s*[\(\[].*?[\)\]]/', '', $title);
+        $title = preg_replace('/\s(feat|ft)\..*/i', '', $title);
+        return trim($title);
+    }
+
+    private function getItunesCover($title, $artist)
+    {
+        $cleanTitle = $this->cleanTitle($title);
+        $markets = ['US', 'GB', 'IN', 'PK', 'SA', 'EG', 'MX', 'BR', 'JP', 'DE', 'FR']; // Added DE/FR for Europe
+
+        foreach ($markets as $country) {
+            try {
+                $term = urlencode($cleanTitle . ' ' . $artist);
+                $response = Http::timeout(1.5)->get("https://itunes.apple.com/search?term={$term}&media=music&entity=song&limit=1&country={$country}");
+                $data = $response->json();
+
+                if (!empty($data['results'][0]['artworkUrl100'])) {
+                    return str_replace('100x100bb', '600x600bb', $data['results'][0]['artworkUrl100']);
+                }
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+        return null;
     }
 }
