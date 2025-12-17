@@ -13,6 +13,9 @@
             </h1>
 
             <div class="shazam-container">
+                {{-- 👇 NEW: The Visualizer Canvas sits behind the button --}}
+                <canvas id="visualizer"></canvas>
+
                 <button id="live-listen-btn" onclick="toggleRecording()" aria-label="Identify Song">
                     <i class="ri-shazam-line"></i>
                 </button>
