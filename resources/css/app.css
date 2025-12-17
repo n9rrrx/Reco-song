@@ -1,207 +1,159 @@
-/* 1. BOOTSTRAP (Crucial for Layout Structure) */
+/* 1. IMPORTS */
 @import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css');
-
-/* 2. GOOGLE FONTS (Inter) */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-/* 3. TAILWIND CSS */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&family=Montserrat:wght@600;700;800&display=swap');
 @import "tailwindcss";
 
-/* 4. TEMPLATE STYLES */
-@import './plugins.bundle.css';
-@import './styles.bundle.css';
-
-/* --- 5. CUSTOM LAVISH THEME --- */
-
+/* --- 2. MATTE VARIABLES --- */
 :root {
-    --bg-dark: #0f172a;       /* Deep Navy */
-    --primary-glow: #6366f1;  /* Indigo Neon */
-    --accent-pink: #ec4899;   /* Hot Pink */
-    --glass-bg: rgba(255, 255, 255, 0.05);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --text-main: #ffffff;
-    --text-muted: #94a3b8;
+    --bg-grey-top: #18181b;   /* Zinc-900 */
+    --bg-grey-btm: #09090b;   /* Zinc-950 */
+    --bg-black: #000000;      /* Footer Black */
+    --accent-primary: #6366f1;
+    --accent-cyan: #06b6d4;
+    --text-bright: #ffffff;
 }
 
+/* --- 3. GLOBAL RESET --- */
 body {
-    /* 👇 UPDATED FONT HERE */
     font-family: 'Inter', sans-serif !important;
-
-    background-color: var(--bg-dark);
-    color: var(--text-main);
+    background: linear-gradient(to bottom, var(--bg-grey-top) 0%, var(--bg-grey-btm) 100%);
+    background-attachment: fixed;
+    color: var(--text-bright);
+    min-height: 100vh;
     overflow-x: hidden;
     position: relative;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* --- MOVING BACKGROUND ANIMATION --- */
-body::before {
-    content: '';
-    position: fixed;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, var(--primary-glow) 0%, transparent 40%),
-    radial-gradient(circle, var(--accent-pink) 0%, transparent 40%);
-    background-position: 0% 0%, 100% 100%;
-    background-size: 50% 50%;
-    opacity: 0.2;
-    z-index: -1;
-    animation: bgMove 20s infinite alternate;
-    pointer-events: none;
-}
-
-@keyframes bgMove {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(-50px, -50px); }
-}
-
-/* --- GLASSMORPHISM CARDS --- */
-.glass-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    border-radius: 24px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
-
-/* --- THE PULSING MIC BUTTON --- */
-.btn-lavish {
-    background: linear-gradient(135deg, var(--primary-glow), var(--accent-pink));
+/* --- 4. HEADER --- */
+.header-glass {
+    background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 100%);
     border: none;
-    color: white;
-    border-radius: 50px;
-    transition: all 0.3s ease;
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
-    position: relative;
-    overflow: hidden;
-    z-index: 10;
 }
 
-.btn-lavish:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 0 40px rgba(236, 72, 153, 0.7);
-    color: white;
+.navbar-brand img {
+    filter: brightness(0) invert(1);
+    opacity: 1;
+}
+.navbar-brand:hover img { transform: scale(1.02); }
+@media (max-width: 576px) { .navbar-brand img { height: 80px !important; } }
+
+/* --- 5. TITLES --- */
+h1.display-title {
+    font-weight: 800; letter-spacing: -0.04em; line-height: 1; color: white;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
-/* Active State (Red Pulse) */
-.btn-lavish.listening {
-    animation: pulse-red 1.5s infinite;
-    background: #ef4444 !important; /* Force Red */
-    background-image: none !important;
+/* --- 6. LIQUID BUTTON --- */
+.shazam-container {
+    position: relative; display: flex; justify-content: center; align-items: center;
+    height: 340px; margin-bottom: 2rem;
 }
 
-@keyframes pulse-red {
-    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-    70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+#live-listen-btn {
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan));
+    color: white; display: flex; align-items: center; justify-content: center;
+    box-shadow:
+        0 0 0 8px rgba(255, 255, 255, 0.02),
+        0 20px 50px rgba(0, 0, 0, 0.3),
+        inset 0 4px 20px rgba(255, 255, 255, 0.2);
+    z-index: 10; cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* --- FEATURE ICONS --- */
-.feature-icon-box {
-    width: 80px;
-    height: 80px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.5rem;
-    margin: 0 auto 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white !important;
-    transition: transform 0.3s;
+#live-listen-btn i {
+    font-size: 90px; line-height: 1; display: block;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
 }
 
-.feature-card:hover .feature-icon-box {
-    transform: rotate(10deg) scale(1.1);
-    background: rgba(255, 255, 255, 0.2);
-}
-
-/* --- UTILITIES --- */
-.text-gradient {
-    background: -webkit-linear-gradient(0deg, #fff, #94a3b8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.spin {
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin { 100% { transform: rotate(360deg); } }
-
-/* Header Hover Effects */
-.hover-glow {
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.hover-glow:hover {
-    color: #fff !important;
-    opacity: 1 !important;
-    text-shadow: 0 0 10px rgba(99, 102, 241, 0.8);
-}
-
-.brand:hover img {
+#live-listen-btn:hover {
     transform: scale(1.05);
+    box-shadow: 0 0 0 12px rgba(255, 255, 255, 0.05), 0 30px 60px rgba(99, 102, 241, 0.4);
 }
 
-.hover-scale:hover {
-    transform: scale(1.05);
+.shazam-container.listening #live-listen-btn {
+    transform: scale(1.15);
+    background: linear-gradient(135deg, #f43f5e, #8b5cf6);
+    box-shadow: 0 0 0 15px rgba(244, 63, 94, 0.1), 0 0 60px rgba(244, 63, 94, 0.5);
 }
 
-/* --- FORCE HIDE LOADER (Legacy Support) --- */
-#loader, .loader, .preloader {
-    display: none !important;
+/* --- 7. BLUE SKY RIPPLES (UPDATED HERE) --- */
+.shazam-container.listening::before, .shazam-container.listening::after {
+    content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    border-radius: 50%;
+
+    /* 👇 CHANGED TO SKY BLUE / CYAN */
+    border: 2px solid rgba(6, 182, 212, 0.8);
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.4); /* Glow effect */
+
+    opacity: 0; z-index: 1;
 }
 
-/* --- MOBILE RESPONSIVENESS FIXES --- */
-@media (max-width: 991px) {
+.shazam-container.listening::before { width: 200px; height: 200px; animation: ripple-ultra 2.5s infinite cubic-bezier(0, 0.55, 0.45, 1); }
+.shazam-container.listening::after { width: 200px; height: 200px; animation: ripple-ultra 2.5s infinite cubic-bezier(0, 0.55, 0.45, 1) 0.5s; }
 
-    /* 1. Shrink the Giant Title */
-    h1.display-3 {
-        font-size: 2.5rem !important; /* Smaller on mobile */
-        line-height: 1.2;
-    }
-
-    /* 2. Adjust Hero Spacing */
-    .min-vh-100 {
-        min-height: auto !important; /* Allow scroll on mobile */
-        padding-top: 140px !important; /* clear fixed header */
-        padding-bottom: 60px;
-    }
-
-    /* 3. Make Buttons Full Width */
-    #live-listen-btn {
-        width: 100% !important;
-        padding: 1.5rem !important;
-        font-size: 1.2rem !important;
-    }
-
-    /* 4. Fix Navbar Mobile Menu */
-    .navbar-collapse {
-        background: rgba(15, 23, 42, 0.95); /* Solid dark background */
-        backdrop-filter: blur(15px);
-        padding: 20px;
-        border-radius: 15px;
-        margin-top: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    /* Center nav links on mobile */
-    .navbar-nav {
-        text-align: center;
-    }
-
-    .navbar-ex {
-        justify-content: center;
-        margin-top: 15px;
-        width: 100%;
-    }
-
-    .navbar-ex .btn {
-        width: 100%; /* Full width "Try Free" button */
-    }
+@keyframes ripple-ultra {
+    0% { width: 200px; height: 200px; opacity: 0.8; border-width: 3px; }
+    100% { width: 650px; height: 650px; opacity: 0; border-width: 0px; }
 }
+
+/* --- 8. STATUS PILL --- */
+.status-pill {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 12px 36px; background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 100px;
+    font-size: 1.1rem; font-weight: 500; letter-spacing: 0.5px; color: rgba(255,255,255,0.8);
+    transition: all 0.3s;
+}
+
+/* --- 9. RESULT OVERLAY --- */
+.result-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 9999; display: flex; align-items: center; justify-content: center;
+    background: #000; animation: fadeIn 0.5s ease-out;
+}
+
+.result-bg-dynamic {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-size: cover; background-position: center;
+    filter: blur(80px) brightness(0.5); transform: scale(1.1);
+    z-index: 0; transition: background-image 0.5s ease;
+}
+
+.result-card-glass {
+    position: relative; z-index: 10;
+    background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 255, 255, 0.1); padding: 3rem; border-radius: 40px;
+    box-shadow: 0 40px 100px -20px rgba(0,0,0,0.7);
+    max-width: 450px; width: 90%; text-align: center;
+}
+
+.album-art-premium {
+    width: 260px; height: 260px; object-fit: cover; border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin-bottom: 2rem;
+    border: 1px solid rgba(255,255,255,0.15);
+}
+
+.result-title { font-weight: 800; font-size: 2rem; margin-bottom: 0.5rem; line-height: 1.1; color: white; }
+.result-artist { font-weight: 500; font-size: 1.1rem; color: rgba(255,255,255,0.7); margin-bottom: 2.5rem; }
+
+.btn-action {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 14px 24px; width: 100%; border-radius: 12px;
+    font-weight: 600; font-size: 0.95rem; text-decoration: none; transition: all 0.2s; border: none;
+}
+.btn-spotify { background: #1db954; color: black; }
+.btn-spotify:hover { background: #1ed760; transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(29, 185, 84, 0.4); }
+.btn-youtube { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.1); }
+.btn-youtube:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+
+.btn-close-premium {
+    position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(255,255,255,0.1); border: none; color: white; font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.3s;
+}
+.btn-close-premium:hover { background: rgba(255,255,255,0.3); transform: rotate(90deg); }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
