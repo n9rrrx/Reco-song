@@ -118,18 +118,18 @@ window.toggleRecording = async function() {
     try {
         await window.recorder.start();
         startVisualsUI(btn);
-
-        // 🚀 START THE VISUALIZER!
         startVisualizer();
 
+        // ⚡ SPEED FIX: Reduced from 5s to 3.5s
         setTimeout(async () => {
             if (!isRecording) return;
 
-            statusText.innerText = "Bestie, I'm thinking... 🧠";
+            // Change the text immediately to show progress
+            statusText.innerText = "Identifying... ⚡";
 
             try {
                 const audioBlob = await window.recorder.stop();
-                stopVisualizer(); // Stop graphics before upload
+                stopVisualizer();
 
                 if (!isRecording) return;
                 await sendAudioToServer(audioBlob, btn);
@@ -137,7 +137,7 @@ window.toggleRecording = async function() {
                 console.error(err);
                 resetApp(btn, "Mic Error 😢");
             }
-        }, 5000);
+        }, 3500);
 
     } catch (err) {
         alert("Please allow microphone access!");
@@ -197,31 +197,60 @@ function resetApp(btn, message) {
 }
 
 // --- 4. SHOW RESULT ---
+// --- 4. SHOW RESULT (UPDATED FOR SPOTIFY EMBED) ---
 function showResult(data) {
     document.getElementById('result-title').innerText = data.title;
     document.getElementById('result-artist').innerText = data.artist;
 
-    const artUrl = data.album_art || "/assets/images/misc/plan.png";
-    document.getElementById('result-album-art').src = artUrl;
-
+    const albumArtImg = document.getElementById('result-album-art');
+    const embedContainer = document.getElementById('spotify-embed-container');
     const bgDiv = document.querySelector('.result-bg-dynamic');
+
+    // Handle Background & Fallback Image
+    const artUrl = data.album_art || "/assets/images/misc/plan.png";
     if(bgDiv) bgDiv.style.backgroundImage = `url('${artUrl}')`;
 
-    const btnSpotify = document.getElementById('btn-spotify');
-    const btnYoutube = document.getElementById('btn-youtube');
-
-    if(data.spotify_link) {
-        btnSpotify.href = data.spotify_link;
-        btnSpotify.style.display = 'flex';
+    // --- SPOTIFY EMBED ENGINE ---
+    if (data.spotify_id) {
+        // Inject the interactive Spotify player
+        embedContainer.innerHTML = `
+            <iframe
+                src="https://open.spotify.com/embed/track/${data.spotify_id}?utm_source=generator&theme=0"
+                width="100%"
+                height="80"
+                frameBorder="0"
+                allowfullscreen=""
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                style="border-radius:12px;"
+                loading="lazy">
+            </iframe>`;
+        embedContainer.style.display = 'block';
+        albumArtImg.style.display = 'none'; // Hide static image to show player
     } else {
-        btnSpotify.style.display = 'none';
+        // Fallback to static image if no Spotify ID exists
+        embedContainer.style.display = 'none';
+        albumArtImg.src = artUrl;
+        albumArtImg.style.display = 'block';
     }
 
+    // Update Action Buttons
+    const btnYoutube = document.getElementById('btn-youtube');
+    const btnSpotify = document.getElementById('btn-spotify');
+
+    // YouTube link from backend
     if(data.youtube_link) {
         btnYoutube.href = data.youtube_link;
         btnYoutube.style.display = 'flex';
     } else {
         btnYoutube.style.display = 'none';
+    }
+
+    // Direct Spotify link if you still want the button
+    if(data.spotify_id) {
+        btnSpotify.href = `https://open.spotify.com/track/${data.spotify_id}`;
+        btnSpotify.style.display = 'flex';
+    } else {
+        btnSpotify.style.display = 'none';
     }
 
     document.getElementById('result-overlay').style.display = 'flex';
@@ -230,4 +259,6 @@ function showResult(data) {
 window.closeResult = function() {
     document.getElementById('result-overlay').style.display = 'none';
     document.querySelector('.result-bg-dynamic').style.backgroundImage = 'none';
+    // 🛑 STOP MUSIC: Clear the iframe so the music stops when closing the window
+    document.getElementById('spotify-embed-container').innerHTML = '';
 };

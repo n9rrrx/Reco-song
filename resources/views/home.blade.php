@@ -30,19 +30,28 @@
         </div>
     </div>
 
-    {{-- Result Overlay (Kept the same premium glass look) --}}
+    {{-- Result Overlay --}}
     <div id="result-overlay" class="result-overlay" style="display: none;">
         <div class="result-bg-dynamic"></div>
         <div class="result-card-glass">
             <button onclick="closeResult()" class="btn-close-premium">
                 <i class="ri-close-line"></i>
             </button>
+
+            {{-- 1. Static Image Fallback --}}
             <img id="result-album-art" src="" class="album-art-premium">
+
+            {{-- 2. NEW: Spotify Embed Container --}}
+            {{-- This is where the interactive player will appear --}}
+            <div id="spotify-embed-container" style="display: none; margin-bottom: 2rem; border-radius: 12px; overflow: hidden;"></div>
+
             <h1 id="result-title" class="result-title">Song Title</h1>
             <h3 id="result-artist" class="result-artist">Artist Name</h3>
+
             <div class="d-flex flex-column gap-2 w-100">
+                {{-- Spotify Button (Updated logic uses this for direct app link) --}}
                 <a id="btn-spotify" href="#" target="_blank" class="btn-action btn-spotify">
-                    <i class="ri-spotify-fill fs-5"></i> Play on Spotify
+                    <i class="ri-spotify-fill fs-5"></i> Open in Spotify
                 </a>
                 <a id="btn-youtube" href="#" target="_blank" class="btn-action btn-youtube">
                     <i class="ri-youtube-fill fs-5"></i> Watch Video
