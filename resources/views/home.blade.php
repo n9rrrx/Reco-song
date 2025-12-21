@@ -8,12 +8,12 @@
 
         <div class="container" style="z-index: 2;">
 
-            <h1 class="display-title mb-5" style="font-size: 4.5rem;">
-                What's playing?
+            <h1 class="display-title mb-5 text-cyan-700" style="font-size: 4.5rem; ">
+                What's the Vibe?
             </h1>
 
             <div class="shazam-container">
-                {{-- 👇 NEW: The Visualizer Canvas sits behind the button --}}
+
                 <canvas id="visualizer"></canvas>
 
                 <button id="live-listen-btn" onclick="toggleRecording()" aria-label="Identify Song">
@@ -40,7 +40,6 @@
 
             {{-- 1. Static Image Fallback --}}
             <img id="result-album-art" src="" class="album-art-premium">
-
             {{-- 2. NEW: Spotify Embed Container --}}
             {{-- This is where the interactive player will appear --}}
             <div id="spotify-embed-container" style="display: none; margin-bottom: 2rem; border-radius: 12px; overflow: hidden;"></div>
