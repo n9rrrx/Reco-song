@@ -8,8 +8,16 @@ export default class AudioRecorder {
     }
 
     async start() {
-        this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        this.audioContext = new AudioContext({ sampleRate: 44100 });
+        try {
+            // Try with simple constraints first (most compatible)
+            this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (err) {
+            console.error("Failed to get audio stream:", err);
+            throw err; // Re-throw to be handled by caller
+        }
+
+        // 22050Hz is sufficient for song recognition and reduces file size by 50%
+        this.audioContext = new AudioContext({ sampleRate: 22050 });
 
         const source = this.audioContext.createMediaStreamSource(this.stream);
         this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
@@ -32,7 +40,7 @@ export default class AudioRecorder {
             this.processor.disconnect();
             this.stream.getTracks().forEach(t => t.stop());
 
-            const wavBlob = this.encodeWAV(this.buffer, 44100);
+            const wavBlob = this.encodeWAV(this.buffer, 22050);
             this.buffer = [];
             this.isRecording = false;
 

@@ -2,47 +2,84 @@ import './bootstrap';
 import AudioRecorder from './recorder';
 
 window.recorder = new AudioRecorder();
-console.log("🚀 Reco-song Ready");
+console.log("🚀 RECO SONG - Ready to identify songs");
 
 let statusInterval;
 let isRecording = false;
+let isProcessing = false; // Track if we're still processing
 // Visualizer Variables
-let audioContext, analyser, source, animationId;
+let audioContext, analyser, source, animationId, visualizerStream;
 
 const trendyMessages = [
-    "Hold up, let me cook... 🍳",
-    "Passing the vibe check... ✅",
-    "Main character energy incoming... ✨",
-    "Bet you heard this on TikTok... 📱",
-    "Manifesting the lyrics... 🕯️",
-    "Listening respectfully... 👁️👄👁️",
-    "Entering my villain era... 😈",
-    "Absolute cinema... ✋🙂‍↕️",
-    "Slay loading... 💅"
+    "Let him cook 👨‍🍳",
+    "Lowkey fire 🔥",
+    "It's giving ✨",
+    "No cap 🧢",
+    "Slay mode 💅🏼",
+    "We ate 🍴",
+    "Main character 👑"
 ];
 
-// --- 1. VISUALIZER ENGINE ---
+const identifyingMessages = [
+    "Cooked 🍳",
+    "Gyatt 😳",
+    "So sigma 🐺",
+    "Rizz check 💫",
+    "Bussin fr 🔥",
+    "Assignment done 📝",
+    "Hits different 🎯"
+];
+
+function setStatus(message) {
+    // Update wave label with fade animation
+    const waveLabel = document.querySelector('.wave-label');
+    if (waveLabel) {
+        waveLabel.classList.add('fade-out');
+        setTimeout(() => {
+            waveLabel.innerText = message;
+            waveLabel.classList.remove('fade-out');
+            waveLabel.classList.add('fade-in');
+            setTimeout(() => waveLabel.classList.remove('fade-in'), 300);
+        }, 150);
+    }
+
+    // Update screen label inside phone mockup with fade
+    const screenLabel = document.querySelector('.screen-label');
+    if (screenLabel) {
+        screenLabel.classList.add('fade-out');
+        setTimeout(() => {
+            screenLabel.innerText = message.toUpperCase();
+            screenLabel.classList.remove('fade-out');
+            screenLabel.classList.add('fade-in');
+            setTimeout(() => screenLabel.classList.remove('fade-in'), 300);
+        }, 150);
+    }
+}
+
+// --- 1. VISUALIZER ENGINE (COMPACT FOR PHONE MOCKUP) ---
 async function startVisualizer() {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    // Simple audio request - most compatible
+    visualizerStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     analyser = audioContext.createAnalyser();
-    source = audioContext.createMediaStreamSource(stream);
+    source = audioContext.createMediaStreamSource(visualizerStream);
 
     source.connect(analyser);
-    analyser.fftSize = 256; // Controls bar count (256 = 128 bars)
+    analyser.fftSize = 256;
 
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
     const canvas = document.getElementById("visualizer");
     const ctx = canvas.getContext("2d");
 
-    // High-DPI Fix
-    canvas.width = 600;
-    canvas.height = 600;
+    // Set canvas size for phone mockup
+    canvas.width = 240;
+    canvas.height = 240;
 
     function renderFrame() {
-        if (!isRecording) {
+        // Keep rendering while recording OR processing
+        if (!isRecording && !isProcessing) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             return;
         }
@@ -54,34 +91,58 @@ async function startVisualizer() {
 
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
-        const radius = 110; // Start bars outside the button (Button is ~100px radius)
-        const bars = 60;    // Number of bars
+        const baseRadius = 55;
+        const bars = 40;
         const step = (Math.PI * 2) / bars;
+        const barWidth = 5;
+
+        // Draw center glow circle
+        const glowGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, baseRadius);
+        glowGradient.addColorStop(0, "rgba(225, 29, 72, 0.15)");
+        glowGradient.addColorStop(0.7, "rgba(225, 29, 72, 0.05)");
+        glowGradient.addColorStop(1, "transparent");
+        ctx.fillStyle = glowGradient;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, baseRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw base circle ring
+        ctx.strokeStyle = "rgba(225, 29, 72, 0.3)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, baseRadius, 0, Math.PI * 2);
+        ctx.stroke();
 
         for (let i = 0; i < bars; i++) {
-            const barHeight = (dataArray[i] / 255) * 100; // Scale height
+            const value = dataArray[i % 64];
+            const barHeight = (value / 255) * 45 + 8;
 
-            // Calculate position on circle
-            const angle = i * step;
-            const x = centerX + Math.cos(angle) * radius;
-            const y = centerY + Math.sin(angle) * radius;
+            const angle = i * step - Math.PI / 2;
+            const startX = centerX + Math.cos(angle) * baseRadius;
+            const startY = centerY + Math.sin(angle) * baseRadius;
 
-            // Draw Bar
             ctx.save();
-            ctx.translate(x, y);
-            ctx.rotate(angle); // Rotate to point outward
+            ctx.translate(startX, startY);
+            ctx.rotate(angle + Math.PI / 2);
 
-            // Gradient Color (Sky Blue to Cyan)
-            const gradient = ctx.createLinearGradient(0, 0, barHeight, 0);
-            gradient.addColorStop(0, "rgba(6, 182, 212, 0.8)"); // Cyan
-            gradient.addColorStop(1, "rgba(99, 102, 241, 0)");  // Fade out
+            const gradient = ctx.createLinearGradient(0, 0, 0, -barHeight);
+            gradient.addColorStop(0, "rgba(225, 29, 72, 0.95)");
+            gradient.addColorStop(0.4, "rgba(251, 113, 133, 0.7)");
+            gradient.addColorStop(1, "rgba(255, 200, 200, 0.2)");
 
             ctx.fillStyle = gradient;
-            ctx.fillRect(0, -3, barHeight, 6); // (x, y, width, thickness)
+            ctx.beginPath();
+            ctx.roundRect(-barWidth / 2, -barHeight, barWidth, barHeight, 3);
+            ctx.fill();
 
-            // Add a small "cap" dot at the end
-            ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-            ctx.fillRect(barHeight, -3, 2, 6);
+            // Glowing tip at the outer end
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = "rgba(225, 29, 72, 0.9)";
+            ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+            ctx.beginPath();
+            ctx.arc(0, -barHeight, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
 
             ctx.restore();
         }
@@ -91,113 +152,178 @@ async function startVisualizer() {
 
 function stopVisualizer() {
     if (animationId) cancelAnimationFrame(animationId);
-    if (audioContext) audioContext.close();
-    // Clear canvas one last time
+    if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+    }
+    if (visualizerStream) {
+        visualizerStream.getTracks().forEach(track => track.stop());
+        visualizerStream = null;
+    }
     const canvas = document.getElementById("visualizer");
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (canvas) {
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
 }
 
-// --- 2. TOGGLE LOGIC (UPDATED) ---
-window.toggleRecording = async function() {
+// --- 2. TOGGLE LOGIC ---
+window.toggleRecording = async function () {
     const btn = document.getElementById('live-listen-btn');
-    const statusText = document.getElementById('status-text');
 
-    if (isRecording) {
+    if (isRecording || isProcessing) {
         console.log("🛑 Cancelled");
-        stopVisualizer(); // Stop graphics
-        try { await window.recorder.stop(); } catch(e) {}
+        isRecording = false;
+        isProcessing = false;
+        stopVisualizer();
+        try { await window.recorder.stop(); } catch (e) { }
 
         stopVisualsUI(btn);
-        isRecording = false;
-        statusText.innerText = "Cancelled";
+        setStatus("Tap the mic to start");
         return;
     }
 
     isRecording = true;
+    isProcessing = true;
+
     try {
+        // Check if getUserMedia is supported
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error("Browser doesn't support microphone access");
+        }
+
+        // Check for available audio input devices
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const audioInputs = devices.filter(d => d.kind === 'audioinput');
+        console.log("🎤 Available microphones:", audioInputs.length, audioInputs);
+
+        if (audioInputs.length === 0) {
+            throw { name: 'NotFoundError', message: 'No microphone detected' };
+        }
+
         await window.recorder.start();
         startVisualsUI(btn);
         startVisualizer();
 
-        // ⚡ SPEED FIX: Reduced from 5s to 3.5s
+        // 3 seconds recording
         setTimeout(async () => {
             if (!isRecording) return;
 
-            // Change the text immediately to show progress
-            statusText.innerText = "Identifying... ⚡";
+            // Switch to identifying messages (slower - 1.5s intervals)
+            setStatus(identifyingMessages[0]);
+            let msgIndex = 0;
+            clearInterval(statusInterval);
+            statusInterval = setInterval(() => {
+                msgIndex = (msgIndex + 1) % identifyingMessages.length;
+                setStatus(identifyingMessages[msgIndex]);
+            }, 1500); // SLOWER message rotation
 
             try {
                 const audioBlob = await window.recorder.stop();
-                stopVisualizer();
+                isRecording = false;
+                // Keep isProcessing = true so visualizer stays
 
-                if (!isRecording) return;
                 await sendAudioToServer(audioBlob, btn);
             } catch (err) {
-                console.error(err);
-                resetApp(btn, "Mic Error 😢");
+                console.error("Recording error:", err);
+                clearInterval(statusInterval);
+                resetApp(btn, "Recording failed 😢");
             }
-        }, 3500);
+        }, 3000);
 
     } catch (err) {
-        alert("Please allow microphone access!");
-        resetApp(btn, "No Mic Access 🚫");
+        console.error("Mic access error:", err);
+        isRecording = false;
+        isProcessing = false;
+
+        // Show specific error message based on error type
+        let errorMsg = "Mic error 🎤";
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+            errorMsg = "Mic blocked by browser";
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+            errorMsg = "No mic found - check connections";
+        } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+            errorMsg = "Mic busy - close other apps";
+        } else if (err.message) {
+            errorMsg = err.message;
+        }
+
+        setStatus(errorMsg);
+        stopVisualsUI(btn);
     }
 };
 
 // --- UI HELPERS ---
 function startVisualsUI(btn) {
-    btn.parentElement.classList.add('listening');
-    btn.classList.add('active');
-    btn.innerHTML = `<i class="ri-stop-fill" style="font-size: 80px;"></i>`;
+    const heroSection = document.querySelector('.hero-section');
+    if (heroSection) heroSection.classList.add('listening');
 
-    const statusText = document.getElementById('status-text');
+    if (btn) btn.classList.add('active');
+
     let index = 0;
-    statusText.innerText = trendyMessages[0];
+    setStatus(trendyMessages[0]);
 
+    // SLOWER message rotation - 1.2 seconds instead of 600ms
     statusInterval = setInterval(() => {
         index = (index + 1) % trendyMessages.length;
-        statusText.innerText = trendyMessages[index];
-    }, 2000);
+        setStatus(trendyMessages[index]);
+    }, 1200);
 }
 
 function stopVisualsUI(btn) {
-    btn.parentElement.classList.remove('listening');
-    btn.classList.remove('active');
-    btn.innerHTML = `<i class="ri-shazam-line" style="font-size: 90px;"></i>`; // Reset Icon Size
+    const heroSection = document.querySelector('.hero-section');
+    if (heroSection) heroSection.classList.remove('listening');
+
+    if (btn) btn.classList.remove('active');
+
     clearInterval(statusInterval);
-    document.getElementById('status-text').innerText = "Tap to start listening";
+    statusInterval = null;
 }
 
 // --- 3. UPLOAD & RESET ---
-async function sendAudioToServer(audioBlob, btn) {
-    if (!isRecording) return;
+async function sendAudioToServer(audioBlob, btn, identifyInterval = null) {
     const formData = new FormData();
     formData.append('audio', audioBlob, 'recording.wav');
 
     try {
         const response = await axios.post('/recognize', formData);
-        resetApp(btn, "Tap to start listening");
+        clearInterval(statusInterval);
+
+        // NOW stop everything
+        isProcessing = false;
+        stopVisualizer();
+        resetApp(btn, "Tap the mic to start");
 
         if (response.data.status === 'success') {
             showResult(response.data.data);
         } else {
-            document.getElementById('status-text').innerText = "Flop era. Song not found. 💀";
+            setStatus("No match found. Try again!");
         }
     } catch (error) {
+        clearInterval(statusInterval);
+        isProcessing = false;
+        stopVisualizer();
         resetApp(btn, "Server Error 💀");
     }
 }
 
 function resetApp(btn, message) {
     isRecording = false;
+    isProcessing = false;
+    clearInterval(statusInterval);
+    statusInterval = null;
+
     stopVisualizer();
     stopVisualsUI(btn);
-    if(message) document.getElementById('status-text').innerText = message;
+
+    if (message) {
+        setTimeout(() => {
+            setStatus(message);
+        }, 10);
+    }
 }
 
 // --- 4. SHOW RESULT ---
-// --- 4. SHOW RESULT (UPDATED FOR SPOTIFY EMBED) ---
 function showResult(data) {
     document.getElementById('result-title').innerText = data.title;
     document.getElementById('result-artist').innerText = data.artist;
@@ -206,13 +332,27 @@ function showResult(data) {
     const embedContainer = document.getElementById('spotify-embed-container');
     const bgDiv = document.querySelector('.result-bg-dynamic');
 
-    // Handle Background & Fallback Image
     const artUrl = data.album_art || "/assets/images/misc/plan.png";
-    if(bgDiv) bgDiv.style.backgroundImage = `url('${artUrl}')`;
+    if (bgDiv) bgDiv.style.backgroundImage = `url('${artUrl}')`;
 
-    // --- SPOTIFY EMBED ENGINE ---
+    const sourceBadge = document.getElementById('source-badge');
+    if (sourceBadge && data.source) {
+        const sourceLabels = {
+            'acrcloud': '⚡ ACRCloud',
+            'audd': '🌍 Audd.io',
+            'acoustid': '🎵 AcoustID'
+        };
+        sourceBadge.innerText = sourceLabels[data.source] || data.source;
+        sourceBadge.style.display = 'inline-block';
+    }
+
+    const timeDisplay = document.getElementById('recognition-time');
+    if (timeDisplay && data.recognition_time) {
+        timeDisplay.innerText = `⏱ ${data.recognition_time}ms`;
+        timeDisplay.style.display = 'inline-block';
+    }
+
     if (data.spotify_id) {
-        // Inject the interactive Spotify player
         embedContainer.innerHTML = `
             <iframe
                 src="https://open.spotify.com/embed/track/${data.spotify_id}?utm_source=generator&theme=0"
@@ -225,40 +365,105 @@ function showResult(data) {
                 loading="lazy">
             </iframe>`;
         embedContainer.style.display = 'block';
-        albumArtImg.style.display = 'none'; // Hide static image to show player
+        albumArtImg.style.display = 'none';
     } else {
-        // Fallback to static image if no Spotify ID exists
         embedContainer.style.display = 'none';
         albumArtImg.src = artUrl;
         albumArtImg.style.display = 'block';
     }
 
-    // Update Action Buttons
     const btnYoutube = document.getElementById('btn-youtube');
     const btnSpotify = document.getElementById('btn-spotify');
 
-    // YouTube link from backend
-    if(data.youtube_link) {
+    if (data.youtube_link) {
         btnYoutube.href = data.youtube_link;
         btnYoutube.style.display = 'flex';
     } else {
         btnYoutube.style.display = 'none';
     }
 
-    // Direct Spotify link if you still want the button
-    if(data.spotify_id) {
+    if (data.spotify_id) {
         btnSpotify.href = `https://open.spotify.com/track/${data.spotify_id}`;
         btnSpotify.style.display = 'flex';
     } else {
         btnSpotify.style.display = 'none';
     }
 
+    saveToHistory(data);
+
     document.getElementById('result-overlay').style.display = 'flex';
 }
 
-window.closeResult = function() {
+// --- 5. HISTORY MANAGEMENT ---
+function saveToHistory(data) {
+    try {
+        let history = JSON.parse(localStorage.getItem('reco_history') || '[]');
+
+        history.unshift({
+            title: data.title,
+            artist: data.artist,
+            album_art: data.album_art,
+            spotify_id: data.spotify_id,
+            youtube_link: data.youtube_link,
+            source: data.source,
+            timestamp: new Date().toISOString()
+        });
+
+        history = history.slice(0, 50);
+
+        localStorage.setItem('reco_history', JSON.stringify(history));
+        console.log('📝 Saved to history');
+    } catch (e) {
+        console.warn('Could not save to history:', e);
+    }
+}
+
+window.getHistory = function () {
+    try {
+        return JSON.parse(localStorage.getItem('reco_history') || '[]');
+    } catch (e) {
+        return [];
+    }
+};
+
+window.clearHistory = function () {
+    localStorage.removeItem('reco_history');
+    console.log('🗑️ History cleared');
+};
+
+// --- 6. SHARE FUNCTIONALITY ---
+window.shareResult = async function () {
+    const title = document.getElementById('result-title').innerText;
+    const artist = document.getElementById('result-artist').innerText;
+    const shareText = `🎵 Just discovered "${title}" by ${artist} using RECO SONG!`;
+
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: 'RECO SONG - Song Discovery',
+                text: shareText,
+                url: window.location.href
+            });
+        } catch (e) {
+            console.log('Share cancelled');
+        }
+    } else {
+        try {
+            await navigator.clipboard.writeText(shareText);
+            alert('Copied to clipboard! 📋');
+        } catch (e) {
+            alert(shareText);
+        }
+    }
+};
+
+window.closeResult = function () {
     document.getElementById('result-overlay').style.display = 'none';
     document.querySelector('.result-bg-dynamic').style.backgroundImage = 'none';
-    // 🛑 STOP MUSIC: Clear the iframe so the music stops when closing the window
     document.getElementById('spotify-embed-container').innerHTML = '';
+
+    const sourceBadge = document.getElementById('source-badge');
+    const timeDisplay = document.getElementById('recognition-time');
+    if (sourceBadge) sourceBadge.style.display = 'none';
+    if (timeDisplay) timeDisplay.style.display = 'none';
 };
