@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Reco-song | Instant song recognizer </title>
+    <title>@yield('title', 'Reco-song | Instant song recognizer')</title>
 
     <link rel="icon" type="image/svg+xml" href="{{ asset('assets/images/logos/favicon.png') }}">
 
@@ -18,7 +18,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body>
+<body class="@yield('body_class')">
 <div id="wrapper">
     @include('components.header')
     <main>
