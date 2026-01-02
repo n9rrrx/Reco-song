@@ -4,9 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Reco-song | Instant song recognizer')</title>
+    <title>@yield('title', 'RECO SONG | Instant Song Recognition')</title>
 
-    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/images/logos/favicon.png') }}">
+    {{-- Favicon --}}
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/images/logos/favicon.svg') }}">
+    <link rel="icon" type="image/png" sizes="96x96" href="{{ asset('assets/images/logos/favicon-96x96.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('assets/images/logos/apple-touch-icon.png') }}">
 
     {{-- IMMEDIATE THEME APPLICATION (prevents flash) --}}
     <script>
