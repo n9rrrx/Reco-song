@@ -9,15 +9,27 @@ export default class AudioRecorder {
 
     async start() {
         try {
-            // Try with simple constraints first (most compatible)
-            this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // Request higher quality audio for better recognition
+            this.stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: true,
+                    sampleRate: 44100
+                }
+            });
         } catch (err) {
-            console.error("Failed to get audio stream:", err);
-            throw err; // Re-throw to be handled by caller
+            // Fallback to simple constraints if advanced ones fail
+            try {
+                this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch (fallbackErr) {
+                console.error("Failed to get audio stream:", fallbackErr);
+                throw fallbackErr;
+            }
         }
 
-        // 22050Hz is sufficient for song recognition and reduces file size by 50%
-        this.audioContext = new AudioContext({ sampleRate: 22050 });
+        // 44100Hz (CD quality) for better recognition accuracy
+        this.audioContext = new AudioContext({ sampleRate: 44100 });
 
         const source = this.audioContext.createMediaStreamSource(this.stream);
         this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
@@ -32,7 +44,7 @@ export default class AudioRecorder {
         };
 
         this.isRecording = true;
-        console.log("🎙️ Recording WAV PCM...");
+        console.log("🎙️ Recording WAV PCM @ 44100Hz...");
     }
 
     stop() {
@@ -40,7 +52,7 @@ export default class AudioRecorder {
             this.processor.disconnect();
             this.stream.getTracks().forEach(t => t.stop());
 
-            const wavBlob = this.encodeWAV(this.buffer, 22050);
+            const wavBlob = this.encodeWAV(this.buffer, 44100);
             this.buffer = [];
             this.isRecording = false;
 

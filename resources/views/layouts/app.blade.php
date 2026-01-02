@@ -8,6 +8,14 @@
 
     <link rel="icon" type="image/svg+xml" href="{{ asset('assets/images/logos/favicon.png') }}">
 
+    {{-- IMMEDIATE THEME APPLICATION (prevents flash) --}}
+    <script>
+        (function() {
+            const theme = localStorage.getItem('reco-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+
     {{-- FONTS: Inter + Montserrat --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

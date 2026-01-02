@@ -132,45 +132,112 @@
         </div>
     </section>
 
-    {{-- RESULT OVERLAY - Premium Style --}}
+    {{-- RESULT OVERLAY - Ultra Premium Style --}}
     <div id="result-overlay" class="result-overlay" style="display: none;">
+        {{-- Animated Background --}}
         <div class="result-bg-dynamic"></div>
+        <div class="result-bg-particles">
+            <div class="bg-particle"></div>
+            <div class="bg-particle"></div>
+            <div class="bg-particle"></div>
+            <div class="bg-particle"></div>
+            <div class="bg-particle"></div>
+            <div class="bg-particle"></div>
+        </div>
+
+        {{-- Celebration Confetti Container --}}
+        <div id="confetti-container" class="confetti-container"></div>
 
         <div class="result-card">
+            {{-- Close Button --}}
             <button onclick="closeResult()" class="close-btn">
                 <i class="ri-close-line"></i>
             </button>
 
-            <div class="result-header">
-                <div class="result-badges">
-                    <span id="source-badge" class="badge-source" style="display: none;"></span>
-                    <span id="recognition-time" class="badge-time" style="display: none;"></span>
+            {{-- Recognition Time - Modern Floating Style --}}
+            <div id="recognition-time-wrapper" class="recognition-time-wrapper" style="display: none;">
+                <div class="time-icon">
+                    <i class="ri-flashlight-fill"></i>
+                </div>
+                <div class="time-content">
+                    <span class="time-label">Identified in</span>
+                    <span id="recognition-time" class="time-value">0ms</span>
                 </div>
             </div>
 
-            <div class="result-artwork">
-                <img id="result-album-art" src="" class="album-art" alt="Album artwork">
-                <div id="spotify-embed-container" style="display: none;"></div>
+            {{-- Vinyl + Album Art Container --}}
+            <div class="result-artwork-wrapper">
+                <div class="vinyl-record">
+                    <div class="vinyl-grooves"></div>
+                    <div class="vinyl-label">
+                        <div class="vinyl-center"></div>
+                    </div>
+                </div>
+                <div class="album-art-container">
+                    <img id="result-album-art" src="" class="album-art" alt="Album artwork">
+                    <div class="album-glow"></div>
+                </div>
+                <div id="spotify-embed-container" class="spotify-embed" style="display: none;"></div>
             </div>
 
+            {{-- Song Info with Animation --}}
             <div class="result-info">
+                {{-- Song Found - Premium Animated Style --}}
+                <div class="song-found-wrapper">
+                    <div class="found-pulse"></div>
+                    <div class="found-content">
+                        <i class="ri-music-2-fill"></i>
+                        <span>Match Found</span>
+                    </div>
+                </div>
+
                 <h1 id="result-title" class="song-title">Song Title</h1>
                 <p id="result-artist" class="song-artist">Artist Name</p>
             </div>
 
+            {{-- Divider --}}
+            <div class="result-divider">
+                <span class="divider-text">Listen Now</span>
+            </div>
+
+            {{-- Premium Action Buttons --}}
             <div class="action-btns">
                 <a id="btn-spotify" href="#" target="_blank" class="btn-action btn-spotify">
-                    <i class="ri-spotify-fill"></i>
-                    <span>Play on Spotify</span>
+                    <div class="btn-icon-wrap">
+                        <i class="ri-spotify-fill"></i>
+                    </div>
+                    <div class="btn-text-wrap">
+                        <span class="btn-label">Play on</span>
+                        <span class="btn-platform">Spotify</span>
+                    </div>
+                    <i class="ri-arrow-right-up-line btn-arrow"></i>
                 </a>
                 <a id="btn-youtube" href="#" target="_blank" class="btn-action btn-youtube">
-                    <i class="ri-youtube-fill"></i>
-                    <span>Watch on YouTube</span>
+                    <div class="btn-icon-wrap">
+                        <i class="ri-youtube-fill"></i>
+                    </div>
+                    <div class="btn-text-wrap">
+                        <span class="btn-label">Watch on</span>
+                        <span class="btn-platform">YouTube</span>
+                    </div>
+                    <i class="ri-arrow-right-up-line btn-arrow"></i>
                 </a>
                 <button onclick="shareResult()" class="btn-action btn-share">
-                    <i class="ri-share-forward-fill"></i>
-                    <span>Share Discovery</span>
+                    <div class="btn-icon-wrap">
+                        <i class="ri-share-forward-fill"></i>
+                    </div>
+                    <div class="btn-text-wrap">
+                        <span class="btn-label">Share your</span>
+                        <span class="btn-platform">Discovery</span>
+                    </div>
+                    <i class="ri-arrow-right-line btn-arrow"></i>
                 </button>
+            </div>
+
+            {{-- Bottom Branding --}}
+            <div class="result-footer">
+                <span class="powered-by">Identified by</span>
+                <span class="brand-mini">RECO<span class="accent">SONG</span></span>
             </div>
         </div>
     </div>

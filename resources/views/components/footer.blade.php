@@ -35,7 +35,8 @@
     .site-footer {
         background: transparent;
         padding: 40px 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+        transition: border-color 0.4s ease;
     }
 
     .footer-content {
@@ -56,23 +57,25 @@
         font-family: 'Montserrat', sans-serif;
         font-weight: 900;
         font-size: 18px;
-        color: rgba(255, 255, 255, 0.9);
+        color: var(--text-secondary, rgba(255, 255, 255, 0.9));
         letter-spacing: -0.02em;
         display: flex;
         align-items: center;
         gap: 5px;
+        transition: color 0.4s ease;
     }
 
     .footer-accent {
-        color: #e11d48;
+        color: var(--accent-color, #e11d48);
         font-weight: 800;
     }
 
     .footer-tagline {
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.35);
+        color: var(--text-subtle, rgba(255, 255, 255, 0.35));
         padding-left: 16px;
-        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        border-left: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+        transition: color 0.4s ease, border-color 0.4s ease;
     }
 
     .footer-social {
@@ -86,35 +89,36 @@
         display: grid;
         place-items: center;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        color: rgba(255, 255, 255, 0.4);
+        background: var(--btn-bg, rgba(255, 255, 255, 0.03));
+        border: 1px solid var(--btn-border, rgba(255, 255, 255, 0.06));
+        color: var(--text-subtle, rgba(255, 255, 255, 0.4));
         font-size: 18px;
         text-decoration: none;
         transition: all 0.3s ease;
     }
 
     .social-link:hover {
-        background: rgba(225, 29, 72, 0.1);
-        border-color: rgba(225, 29, 72, 0.3);
-        color: #e11d48;
+        background: var(--accent-color, #e11d48);
+        border-color: var(--accent-color, #e11d48);
+        color: #fff;
         transform: translateY(-3px);
-        box-shadow: 0 8px 24px rgba(225, 29, 72, 0.2);
+        box-shadow: 0 8px 24px var(--accent-glow, rgba(225, 29, 72, 0.2));
     }
 
     .footer-copyright {
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.3);
+        color: var(--text-faint, rgba(255, 255, 255, 0.3));
+        transition: color 0.4s ease;
     }
 
     .footer-copyright a {
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-subtle, rgba(255, 255, 255, 0.5));
         text-decoration: none;
         transition: color 0.3s ease;
     }
 
     .footer-copyright a:hover {
-        color: #e11d48;
+        color: var(--accent-color, #e11d48);
     }
 
     @media (max-width: 767.98px) {
