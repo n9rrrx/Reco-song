@@ -4,6 +4,45 @@ import AudioRecorder from './recorder';
 window.recorder = new AudioRecorder();
 console.log("🚀 RECO SONG - Ready to identify songs");
 
+// ================================================================
+// THEME TOGGLE FUNCTIONALITY
+// ================================================================
+
+function initThemeToggle() {
+    const toggle = document.getElementById('theme-toggle');
+    if (!toggle) return;
+
+    // Load saved theme or default to dark
+    const savedTheme = localStorage.getItem('reco-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    // Toggle theme on click
+    toggle.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('reco-theme', newTheme);
+
+        // Add a little haptic feedback animation
+        toggle.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+            toggle.style.transform = '';
+        }, 150);
+
+        console.log(`🎨 Theme switched to: ${newTheme}`);
+    });
+}
+
+// Initialize theme on page load
+document.addEventListener('DOMContentLoaded', initThemeToggle);
+
+// Apply theme immediately to prevent flash
+(function() {
+    const savedTheme = localStorage.getItem('reco-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+})();
+
 let statusInterval;
 let isRecording = false;
 let isProcessing = false; // Track if we're still processing
@@ -205,7 +244,7 @@ window.toggleRecording = async function () {
         startVisualsUI(btn);
         startVisualizer();
 
-        // 3 seconds recording
+        // 5 seconds recording for better accuracy
         setTimeout(async () => {
             if (!isRecording) return;
 
@@ -229,7 +268,7 @@ window.toggleRecording = async function () {
                 clearInterval(statusInterval);
                 resetApp(btn, "Recording failed 😢");
             }
-        }, 3000);
+        }, 5000);
 
     } catch (err) {
         console.error("Mic access error:", err);
@@ -331,25 +370,17 @@ function showResult(data) {
     const albumArtImg = document.getElementById('result-album-art');
     const embedContainer = document.getElementById('spotify-embed-container');
     const bgDiv = document.querySelector('.result-bg-dynamic');
+    const albumContainer = document.querySelector('.album-art-container');
 
     const artUrl = data.album_art || "/assets/images/misc/plan.png";
     if (bgDiv) bgDiv.style.backgroundImage = `url('${artUrl}')`;
 
-    const sourceBadge = document.getElementById('source-badge');
-    if (sourceBadge && data.source) {
-        const sourceLabels = {
-            'acrcloud': '⚡ ACRCloud',
-            'audd': '🌍 Audd.io',
-            'acoustid': '🎵 AcoustID'
-        };
-        sourceBadge.innerText = sourceLabels[data.source] || data.source;
-        sourceBadge.style.display = 'inline-block';
-    }
-
+    // Show recognition time with new design
+    const timeWrapper = document.getElementById('recognition-time-wrapper');
     const timeDisplay = document.getElementById('recognition-time');
-    if (timeDisplay && data.recognition_time) {
-        timeDisplay.innerText = `⏱ ${data.recognition_time}ms`;
-        timeDisplay.style.display = 'inline-block';
+    if (timeWrapper && timeDisplay && data.recognition_time) {
+        timeDisplay.innerText = `${data.recognition_time}ms`;
+        timeWrapper.style.display = 'flex';
     }
 
     if (data.spotify_id) {
@@ -365,11 +396,17 @@ function showResult(data) {
                 loading="lazy">
             </iframe>`;
         embedContainer.style.display = 'block';
-        albumArtImg.style.display = 'none';
+        if (albumContainer) albumContainer.style.display = 'none';
+        // Hide vinyl when showing embed
+        const vinylRecord = document.querySelector('.vinyl-record');
+        if (vinylRecord) vinylRecord.style.display = 'none';
     } else {
         embedContainer.style.display = 'none';
         albumArtImg.src = artUrl;
-        albumArtImg.style.display = 'block';
+        if (albumContainer) albumContainer.style.display = 'block';
+        // Show vinyl
+        const vinylRecord = document.querySelector('.vinyl-record');
+        if (vinylRecord) vinylRecord.style.display = 'block';
     }
 
     const btnYoutube = document.getElementById('btn-youtube');
@@ -392,6 +429,54 @@ function showResult(data) {
     saveToHistory(data);
 
     document.getElementById('result-overlay').style.display = 'flex';
+
+    // Trigger confetti celebration! 🎉
+    triggerConfetti();
+}
+
+// --- CONFETTI CELEBRATION ---
+function triggerConfetti() {
+    const container = document.getElementById('confetti-container');
+    if (!container) return;
+
+    // Clear previous confetti
+    container.innerHTML = '';
+
+    const colors = ['#e11d48', '#ff6b9d', '#1ed760', '#fbbf24', '#60a5fa', '#a78bfa', '#f472b6'];
+    const shapes = ['circle', 'square', 'triangle'];
+
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const shape = shapes[Math.floor(Math.random() * shapes.length)];
+        const left = Math.random() * 100;
+        const delay = Math.random() * 0.5;
+        const duration = 3 + Math.random() * 2;
+        const size = 8 + Math.random() * 8;
+
+        confetti.style.left = `${left}%`;
+        confetti.style.width = `${size}px`;
+        confetti.style.height = `${size}px`;
+        confetti.style.backgroundColor = color;
+        confetti.style.animationDelay = `${delay}s`;
+        confetti.style.animationDuration = `${duration}s`;
+
+        if (shape === 'circle') {
+            confetti.style.borderRadius = '50%';
+        } else if (shape === 'triangle') {
+            confetti.style.backgroundColor = 'transparent';
+            confetti.style.borderLeft = `${size/2}px solid transparent`;
+            confetti.style.borderRight = `${size/2}px solid transparent`;
+            confetti.style.borderBottom = `${size}px solid ${color}`;
+        }
+
+        container.appendChild(confetti);
+
+        // Remove confetti after animation
+        setTimeout(() => confetti.remove(), (delay + duration) * 1000);
+    }
 }
 
 // --- 5. HISTORY MANAGEMENT ---
@@ -462,8 +547,19 @@ window.closeResult = function () {
     document.querySelector('.result-bg-dynamic').style.backgroundImage = 'none';
     document.getElementById('spotify-embed-container').innerHTML = '';
 
-    const sourceBadge = document.getElementById('source-badge');
-    const timeDisplay = document.getElementById('recognition-time');
-    if (sourceBadge) sourceBadge.style.display = 'none';
-    if (timeDisplay) timeDisplay.style.display = 'none';
+    // Reset album art container visibility
+    const albumContainer = document.querySelector('.album-art-container');
+    if (albumContainer) albumContainer.style.display = 'block';
+
+    // Reset vinyl visibility
+    const vinylRecord = document.querySelector('.vinyl-record');
+    if (vinylRecord) vinylRecord.style.display = 'block';
+
+    // Hide time wrapper
+    const timeWrapper = document.getElementById('recognition-time-wrapper');
+    if (timeWrapper) timeWrapper.style.display = 'none';
+
+    // Clear confetti
+    const confettiContainer = document.getElementById('confetti-container');
+    if (confettiContainer) confettiContainer.innerHTML = '';
 };
